@@ -13,14 +13,15 @@ from pimoroni_i2c import PimoroniI2C
 
 
 SENSOR_PINS = {"sda": 0, "scl": 1}
-PROMETHEUS_PUSH_URL = "http://192.168.68.118:9091/metrics/job/some_job"
-POLL_ITERVAL_MS = 10000
+PROMETHEUS_PUSH_URL = "http://friday.local:9091/metrics/job/some_job"
+ADAFRUIT_URL = "https://io.adafruit.com/api/v2/mtbkapp/feeds/{0}/data"
+POLL_ITERVAL_MS = 60000
     
 led = machine.Pin("LED", machine.Pin.OUT)
 
 # import wifi creds from secrets.py
 try:
-    from secrets import WIFI_SSID, WIFI_PASS
+    from secrets import WIFI_SSID, WIFI_PASS, IO_USERNAME, IO_KEY
 except ImportError:
     WIFI_SSID = None
     WIFI_PASS = None
@@ -68,7 +69,8 @@ def init_network_status_check(wlan, connect_retries, wait_retries):
 def init_network():
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
-    init_network_with_retries(wlan, 5) 
+    init_network_with_retries(wlan, 5)
+    return wlan
 
 
 def init_sensor():
@@ -88,33 +90,49 @@ def encode_metrics(metrics):
         s = s + k + " " + str(v) + "\n"
     return s
 
+def adafruit_url(feed_id):
+    return ADAFRUIT_URL.format(feed_id)
 
-def push_metrics(metrics):
-    em = encode_metrics(metrics)
-    print("Sending Metrics:")
-    print(em)
-    resp = urequests.post(PROMETHEUS_PUSH_URL, data=em)
+def send_metric(feed_id, v):
+    print("Sending metric to feed: {0}".format(feed_id))
+    json = {"value": str(v)}
+    headers = {"X-AIO-Key": IO_KEY}
+    resp = urequests.post(adafruit_url(feed_id), json=json, headers=headers)
     print("Sent, status code = " + str(resp.status_code))
     print(resp.content)
     resp.close()
+
+
+def c_to_f(c):
+    return ((9 * c) / 5) + 32 
+
+
+def push_metrics(metrics):
+    send_metric("temp", c_to_f(metrics["temperature"]))
+    send_metric("humidity", metrics["humidity"])
   
 
 def kick_loop():
     print("START")
     print("Connecting to wifi...")
-    init_network()
+    wlan = init_network()
     print("Connected to wifi.")
     print("Init sensor...")
     sensor = init_sensor() 
     print("Sensor init'd")
     print("Starting poll loop")
     while True:
+        if not wlan.isconnected():
+            init_network_with_retries(wlan)
         led.on()
         print("Polling sensor")
         metrics = poll_sensor(sensor)
         print("Done polling sensor")
         print("Pushing metrics")
-        push_metrics(metrics)
+        try:
+            push_metrics(metrics)
+        except Exception as ex:
+            print("Exception pushing metrics", ex)
         print("Done pusihing metrics")
         print("Waiting for next poll")
         led.off()
