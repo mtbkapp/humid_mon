@@ -1,2 +1,4 @@
 WIFI_SSID = ""
 WIFI_PASS = ""
+IO_USERNAME=""
+IO_KEY=""

@@ -13,8 +13,6 @@ from pimoroni_i2c import PimoroniI2C
 
 
 SENSOR_PINS = {"sda": 0, "scl": 1}
-PROMETHEUS_PUSH_URL = "http://friday.local:9091/metrics/job/some_job"
-ADAFRUIT_URL = "https://io.adafruit.com/api/v2/mtbkapp/feeds/{0}/data"
 POLL_ITERVAL_MS = 60000
     
 led = machine.Pin("LED", machine.Pin.OUT)
@@ -26,6 +24,7 @@ except ImportError:
     WIFI_SSID = None
     WIFI_PASS = None
 
+ADAFRUIT_URL = "https://io.adafruit.com/api/v2/{0}/feeds/{1}/data"
 
 def init_network_with_retries(wlan, retries):
     print("Attempting to connect. Retries left {0} \n".format(retries))
@@ -91,7 +90,7 @@ def encode_metrics(metrics):
     return s
 
 def adafruit_url(feed_id):
-    return ADAFRUIT_URL.format(feed_id)
+    return ADAFRUIT_URL.format(IO_USERNAME, feed_id)
 
 def send_metric(feed_id, v):
     print("Sending metric to feed: {0}".format(feed_id))
