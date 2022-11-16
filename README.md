@@ -17,6 +17,15 @@ raised. Use rshell to check the contents of the `error.txt` file for the
 exception message. Exceptions when pushing metrics are ignored.
 
 
+### Useful links
+* [Adafruit IO Docs](https://io.adafruit.com/api/docs/)
+* [rshell Tutorial](https://github.com/dhylands/rshell/blob/master/README.rst)
+* [MicroPython and rshell Tutorial](https://www.mfitzp.com/using-micropython-raspberry-pico/)
+* [urequests Module Docs](https://mpython.readthedocs.io/en/master/library/mPython/urequests.html#)
+* [network Module Docs (for ESP8266 but helpful)](https://docs.micropython.org/en/v1.8.2/esp8266/esp8266/tutorial/network_basics.html)
+* [network Module Docs](https://mpython.readthedocs.io/en/latest/library/micropython/network.html)
+
+
 ### [rshell](https://pypi.org/project/rshell/)
 * Start: `% rshell`
 * Copy file: `rshell> cp humid_mon.py /pyboard/humid_mon.py`
